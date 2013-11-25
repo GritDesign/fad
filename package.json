@@ -8,5 +8,14 @@
     "test": ""
   },
   "repository": "https://github.com/GritDesign/fad.git",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-jsbeautifier": "~0.2.3",
+    "grunt-jasmine-node-coverage": "~0.1.6",
+    "grunt-contrib-jshint": "~0.7.2"
+  },
+  "dependencies": {
+    "immediate": "~2.6.1"
+  }
 }
