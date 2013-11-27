@@ -6,7 +6,7 @@
   "main": "lib/fad.js",
   "copyright": "Copyright 2013 (c) Grit Design, Inc.",
   "scripts": {
-    "test": ""
+    "test": "./node_modules/.bin/jasmine-node spec/"
   },
   "repository": "https://github.com/GritDesign/fad.git",
   "license": "MIT",
@@ -18,6 +18,7 @@
     "browserify": "~2.35.4",
     "grunt-browserify": "~1.2.11",
     "grunt-contrib-uglify": "~0.2.7",
-    "grunt-sed": "~0.1.1"
+    "grunt-sed": "~0.1.1",
+    "jasmine-node": "~1.11.0"
   }
 }
