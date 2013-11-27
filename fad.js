@@ -1,7 +1,18 @@
-"use strict";
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var process=require("__browserify_process");"use strict";
 
-var immediate = typeof setImmediate !== "undefined" ?
-	setImmediate : process.nextTick;
+var immediate;
+
+if (typeof setImmediate !== "undefined") {
+	immediate = setImmediate;
+} else if (typeof process !== "undefined" &&
+	process.nextTick) {
+	immediate = process.nextTick;
+} else {
+	immediate = function (cb) {
+		setTimeout(cb, 0);
+	};
+}
 
 function Context(name, rules, parents) {
 	var rulesMap = {};
@@ -66,7 +77,9 @@ Context.prototype.get = function (key, cb) {
 
 	// check that we have rules or values for each parameter
 	params.forEach(function (param) {
-		if (!error && !HOP(self._values, param) && !self._rules[param] &&
+		if (!error &&
+			!HOP(self._values, param) &&
+			!self._rules[param] &&
 			param !== "err") {
 			error = new Error("Cannot resolve context parameter '" + param +
 				"'");
@@ -125,7 +138,7 @@ Context.prototype.get = function (key, cb) {
 				count--;
 				if (!error) {
 					error = new Error("Cannot resolve context parameter '" +
-						param + "'");
+					param + "'");
 				}
 				checkDone();
 				return;
@@ -256,3 +269,116 @@ function HOP(obj, prop) {
 }
 
 exports.Context = Context;
+},{"__browserify_process":3}],2:[function(require,module,exports){
+"use strict";
+var Context = require("./context.js").Context;
+
+function isArray(val) {
+	return Object.prototype.toString.call(val) ===
+		"[object Array]";
+}
+
+/**
+ *
+ *
+ */
+
+
+
+function create() {
+	var args = Array.prototype.slice.call(arguments);
+
+	var parents = [];
+	var rules = [];
+	var name = "";
+	var objects = [];
+
+	args.forEach(function (arg, i) {
+		if (isArray(arg)) {
+			arg.forEach(function (rule) {
+				rules.push(rule);
+			});
+		} else if (arg instanceof Context) {
+			parents.push(arg);
+		} else if (typeof arg === "object") {
+			objects.push(arg);
+		} else if (typeof arg === "string" && i === 0) {
+			name = arg;
+		} else {
+			throw new Error("Argument " + i + " to fad.create() is invalid.");
+		}
+	});
+
+	var ctx = new Context(name, rules, parents);
+
+	objects.forEach(function (obj) {
+		for (var prop in obj) {
+			if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+				if (!Object.prototype.hasOwnProperty.call(ctx._values, prop)) {
+					ctx.set(prop, obj[prop]);
+				}
+			}
+		}
+	});
+
+	return ctx;
+}
+
+exports.create = create;
+
+},{"./context.js":1}],3:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}]},{},[2])
+;
