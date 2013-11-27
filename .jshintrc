@@ -16,5 +16,6 @@
         "camelcase": true,
         "maxlen": 80,
         "white": true,
-        "node": true
+        "node": true,
+        "predef": ["jasmine","describe","it","expect"]
 }

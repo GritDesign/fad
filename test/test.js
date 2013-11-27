@@ -1,47 +1,27 @@
-var Context = require("../lib/fad").Context;
+var fad = require("..");
 
-var ctx = new Context();
+var rules = [
+    function async10(cb) {
+        setTimeout(function () {
+            cb(null, 10);
+        }, 20);
+    },
+    function addResult(a, b, async10, cb) {
+        cb(null, a + b + async10);
+    }
+];
 
-ctx.set("projectId", "11111");
+var ctx = fad.create(rules);
+ctx.set("a", 10);
+ctx.set("b", 20);
 
-ctx.addRule(function anotherKey(cb) {
-    cb(null, "another");
+
+ctx.get(function (a, b) {
+    console.log("--> ", [a, b]);
 });
 
-ctx.addRule(function rootKey(cb) {
-    console.log("!!!! " + cb);
-    cb(null, "/this/is/a/test");
+/*
+ctx.get(function (addResult) {
+    console.log(addResult);
 });
-
-ctx.get(function(rootKey, anotherKey, projectId) {
-    console.log("rootKey is " + rootKey);
-    console.log("another key  is " + anotherKey);
-    console.log("projectId" + projectId);
-
-    ctx.get(["rootKey", "anotherKey", "projectId"], function(err, results) {
-    console.log("\nwas that  quick?");
-    console.log("rootKey is " + results[0]);
-    console.log("another key  is " + results[1]);
-    console.log("projectId" + results[2]);
-    });
-
-    console.log("THIS SHOULD BE BEFORE the end");
-
-});
-
-ctx.get(function(rootKey, anotherKey, projectId) {
-    console.log("rootKey is " + rootKey);
-    console.log("another key  is " + anotherKey);
-    console.log("projectId" + projectId);
-
-    ctx.get(function(rootKey, anotherKey, projectId) {
-    console.log("\nwas that  quick?");
-    console.log("rootKey is " + rootKey);
-    console.log("another key  is " + anotherKey);
-    console.log("projectId" + projectId);
-    });
-
-    console.log("THIS SHOULD BE BEFORE the end");
-
-});
-
+*/

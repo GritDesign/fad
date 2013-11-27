@@ -33,7 +33,7 @@ module.exports = function (grunt) {
 			},
 
 			spec: {
-				src: ["lib/**/*.js"],
+				src: ["spec/**/*.js"],
 				options: {
 					jshintrc: ".jshintrc"
 				},
