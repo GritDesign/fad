@@ -92,15 +92,16 @@ module.exports = function (grunt) {
 		},
 		uglify: {
 			options: {
-				banner: "/*! fad.js v<%= pkg.version %> | <%= pkg.copyright %> " +
+				banner: "/*! fad.js v<%= pkg.version %> |" +
+					" <%= pkg.copyright %> " +
 					"| http://opensource.org/licenses/MIT\n" +
 					"//@ sourceMappingURL=fad-<%= pkg.version %>.min.map*/",
 				sourceMap: "dist/fad-<%= pkg.version %>.min.map",
 				sourceMapPrefix: 1,
 				report: "min",
 				beautify: {
-                	ascii_only: true
-                }
+					"ascii_only": true
+				}
 			},
 			fad: {
 				files: {

@@ -1,5 +1,20 @@
 var fad = require("..");
 
+var ctx = fad.create({
+            x: 1,
+            y: 2
+        }, [
+            function age(x, y, age2, cb) {
+                cb(null, x + y + age2);
+            },
+            function age(x, y, cb) {
+                cb(null, x + y);
+            }
+        ]);
+
+console.log(JSON.stringify(ctx.deps("age")));
+
+/*
 var rules = [
         function number20(noone, cb) {
             cb(null, 30);
@@ -29,6 +44,7 @@ var rules = [
 var ctx = fad.create(rules);
 ctx.set("a", 10);
 ctx.set("b", 20);
+*/
 
 /*
 ctx.get(4, function(err, value) {

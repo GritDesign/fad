@@ -1,7 +1,7 @@
 {
   "author": "Mark Stewart <mark@grit-design.com>",
   "name": "fad",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Functional Asynchronous Dependency Injection",
   "main": "lib/fad.js",
   "copyright": "Copyright 2013 (c) Grit Design, Inc.",

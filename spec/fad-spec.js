@@ -365,3 +365,178 @@ describe("ctx.keys", function () {
 		rules[0](function () {});
 	});
 });
+
+describe("ctx.eachContext", function () {
+	var ctxA = fad.create("A");
+	var ctxB = fad.create("B");
+	var ctxC = fad.create("C");
+	var ctxD = fad.create("D", ctxA, ctxB, ctxC);
+	var ctxE = fad.create("E", ctxD);
+
+	it("should iterate over contexts closest first order", function () {
+		var all = [];
+		ctxA.eachContext(function (ctx, i) {
+			all.push(ctx.name);
+			expect(ctxA.getContext(i).name).toEqual(ctx.name);
+			return true;
+		});
+
+		expect(all).toEqual(["A"]);
+	});
+
+	it("should iterate over contexts closest first order with parents",
+		function () {
+			var all = [];
+			ctxD.eachContext(function (ctx, i) {
+				all.push(ctx.name);
+				expect(ctxD.getContext(i).name).toEqual(ctx.name);
+				return true;
+			});
+
+			expect(all).toEqual(["D", "A", "B", "C"]);
+		});
+
+	it(
+		"should iterate over contexts closest first order with multiple",
+		function () {
+			var all = [];
+			ctxE.eachContext(function (ctx, i) {
+				all.push(ctx.name);
+				expect(ctxE.getContext(i).name).toEqual(ctx.name);
+				return true;
+			});
+
+			expect(all).toEqual(["E", "D", "A", "B", "C"]);
+		});
+});
+
+describe("ctx.deps", function () {
+	var ctx = fad.create({
+		test: "value"
+	});
+	it("should report deps of simple context variables", function () {
+		expect(ctx.deps("test")).toEqual({
+			type: "value",
+			name: "test",
+			ctxIndex: 0,
+			minCtx: 0,
+			maxCtx: 0,
+			hasDeps: true,
+			deps: []
+		});
+	});
+
+	it("should detect cycles", function () {
+		var ctx = fad.create({
+			x: 1,
+			y: 2
+		}, [
+
+			function age(x, y, age2, cb) {
+				cb(null, x + y + age2);
+			},
+			function age2(y, x, age, cb) {
+				cb(null, x + y + age);
+			}
+		]);
+
+		var rulesCount = 0;
+		ctx.eachRule("age", function () {
+			rulesCount++;
+		});
+
+		expect(rulesCount).toEqual(1);
+
+		expect(function () {
+			return ctx.deps("age");
+		}).toThrow(new Error("Cycle detected: age->age2->age"));
+	});
+
+	it("should ignore rules that don't have all deps", function () {
+		var ctx = fad.create({
+			x: 1,
+			y: 2
+		}, [
+
+			function age(x, y, age2, cb) {
+				cb(null, x + y + age2);
+			},
+			function age(x, y, cb) {
+				cb(null, x + y);
+			}
+		]);
+
+		expect(ctx.deps("age")).toEqual({
+			"type": "rule",
+			"name": "age",
+			"ctxIndex": 0,
+			"minCtx": 0,
+			"maxCtx": 0,
+			"ruleIndex": 1,
+			"hasDeps": true,
+			"deps": [{
+				"type": "value",
+				"name": "x",
+				"ctxIndex": 0,
+				"minCtx": 0,
+				"maxCtx": 0,
+				"hasDeps": true,
+				"deps": []
+			}, {
+				"type": "value",
+				"name": "y",
+				"ctxIndex": 0,
+				"minCtx": 0,
+				"maxCtx": 0,
+				"hasDeps": true,
+				"deps": []
+			}]
+		});
+
+		var ctx2 = fad.create(ctx);
+		expect(ctx2.deps("age")).toEqual({
+			"type": "rule",
+			"name": "age",
+			"ctxIndex": 1,
+			"minCtx": 1,
+			"maxCtx": 1,
+			"ruleIndex": 1,
+			"hasDeps": true,
+			"deps": [{
+				"type": "value",
+				"name": "x",
+				"ctxIndex": 1,
+				"minCtx": 1,
+				"maxCtx": 1,
+				"hasDeps": true,
+				"deps": []
+			}, {
+				"type": "value",
+				"name": "y",
+				"ctxIndex": 1,
+				"minCtx": 1,
+				"maxCtx": 1,
+				"hasDeps": true,
+				"deps": []
+			}]
+		});
+	});
+});
+
+describe("ctx.smallestEnclosingContext", function () {
+	it("should select a global context if there are not other deps",
+		function () {
+			var aCtx = fad.create("something", {"else": true});
+			var gCtx = fad.create("global", {"test": "hello"});
+			var ctx = fad.create("user", aCtx, gCtx);
+
+			var deps = ctx.deps("test");
+			var smallestCtx = ctx.smallestEnclosingContext(deps.minCtx,
+				deps.maxCtx);
+			expect(smallestCtx.name).toEqual("global");
+
+			smallestCtx = ctx.smallestEnclosingContext(deps.minCtx,
+				deps.maxCtx + 1);
+			expect(smallestCtx.name).toEqual("user");
+		});
+});
