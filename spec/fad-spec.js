@@ -278,15 +278,14 @@ describe("ctx.get", function () {
 		});
 	});
 
-	it("should not resolve properties that don't exist", function (done) {
-		ctx.get(function (err, nothing) {
-			expect(nothing).toBeUndefined();
-			expect(err)
-				.toEqual(new Error(
-					"Cannot resolve context parameter 'nothing'"));
-			done();
+	it("should resolve properties that don't exist as undefined",
+		function (done) {
+			ctx.get(function (err, nothing) {
+				expect(nothing).toBeUndefined();
+				expect(err).toBeNull();
+				done();
+			});
 		});
-	});
 
 	it(
 		"should return only the first error if there are multiple errors",
@@ -323,11 +322,12 @@ describe("ctx.get", function () {
 			}
 		});
 
-	it(
-		"should give error for rules that depend on non-existing parameters",
+	it("should give undefined for rules that depend on " +
+		"non-existing parameters",
 		function (done) {
 			ctx.get(function (err, dependsOnNothing) {
-				expect(err).toEqual(new Error());
+				expect(err).toBeNull();
+				expect(dependsOnNothing).toBeUndefined();
 				done();
 				return dependsOnNothing;
 			});
@@ -526,8 +526,12 @@ describe("ctx.deps", function () {
 describe("ctx.smallestEnclosingContext", function () {
 	it("should select a global context if there are not other deps",
 		function () {
-			var aCtx = fad.create("something", {"else": true});
-			var gCtx = fad.create("global", {"test": "hello"});
+			var aCtx = fad.create("something", {
+				"else": true
+			});
+			var gCtx = fad.create("global", {
+				"test": "hello"
+			});
 			var ctx = fad.create("user", aCtx, gCtx);
 
 			var deps = ctx.deps("test");
