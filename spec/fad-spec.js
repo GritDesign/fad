@@ -133,6 +133,12 @@ describe("ctx.get", function () {
 		},
 		function dependsOnNothing(nothing, cb) {
 			cb(null, "should have been error!");
+		},
+		function duplicate(cb) {
+			cb(null, "good");
+		},
+		function duplicate(cb) {
+			cb(null, "bad");
 		}
 	];
 
@@ -160,6 +166,14 @@ describe("ctx.get", function () {
 		ctx.get(function (err, dependsOnErrorRule) {
 			expect(err).toEqual(new Error("There was an error"));
 			expect(dependsOnErrorRule).toBeNull();
+			done();
+		});
+	});
+
+	it("should use the first of multiple rules where dependencies are met",
+		function (done) {
+		ctx.get(function (err, duplicate) {
+			expect(duplicate).toEqual("good");
 			done();
 		});
 	});
