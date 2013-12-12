@@ -62,18 +62,18 @@ describe("create()", function () {
 		rules[1](1, function () {});
 	});
 
-	it("should not allow rules whose last argument is not named cb",
+	it("should not allow rules that use cb and it is not the last argument",
 		function () {
 			var rules = [
 
-				function test(x, y) {
+				function test(cb, x, y) {
 					x = y;
 				}
 			];
 			expect(function () {
 				fad.create(rules);
 			}).toThrow(new Error(
-				"Rule 'test(x, y)' does not have cb as final argument."));
+				"Error in rule test(cb, x, y) 'cb' should be last argument."));
 			/* run for cover */
 			rules[0](1, 2);
 		});
@@ -107,7 +107,6 @@ describe("ctx", function () {
 describe("ctx.get", function () {
 
 	var rules = [
-
 		function number20(noone, cb) {
 			cb(null, 30);
 		},
@@ -139,6 +138,9 @@ describe("ctx.get", function () {
 		},
 		function duplicate(cb) {
 			cb(null, "bad");
+		},
+		function sync40(number20) {
+			return number20 * 2;
 		}
 	];
 
@@ -360,6 +362,13 @@ describe("ctx.get", function () {
 			done();
 		});
 	});
+
+	it("should accept non-async rules", function (done) {
+		ctx.get(function (sync40) {
+			expect(sync40).toEqual(40);
+			done();
+		});
+	});
 });
 
 describe("ctx.keys", function () {
@@ -453,13 +462,6 @@ describe("ctx.deps", function () {
 				cb(null, x + y + age);
 			}
 		]);
-
-		var rulesCount = 0;
-		ctx.eachRule("age", function () {
-			rulesCount++;
-		});
-
-		expect(rulesCount).toEqual(1);
 
 		expect(function () {
 			return ctx.deps("age");

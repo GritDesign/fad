@@ -1,5 +1,75 @@
 var fad = require("..");
 
+var rules = [
+    function number20(noone, cb) {
+	cb(null, 30);
+    },
+    function number20(cb) {
+	cb(null, 20);
+    },
+    function async10(cb) {
+	setTimeout(function () {
+	    cb(null, 10);
+	}, 200);
+    },
+    function addResult(a, b, async10, cb) {
+	cb(null, a + b + async10);
+    },
+    function errorRule(cb) {
+	cb(new Error("There was an error"));
+    },
+    function errorRule2(cb) {
+	cb(new Error("2nd error"));
+    },
+    function dependsOnErrorRule(errorRule, cb) {
+	cb(null, "should have been error!");
+    },
+    function dependsOnNothing(nothing, cb) {
+	cb(null, "should have been error!");
+    },
+    function duplicate(cb) {
+	cb(null, "good");
+    },
+    function duplicate(cb) {
+	cb(null, "bad");
+    },
+    function sync40(number20) {
+	return number20 * 2;
+    }
+];
+
+/* run for cover */
+rules[0](1, function () {});
+rules[6](1, function () {});
+rules[7](1, function () {});
+
+
+var ctx = fad.create(rules);
+
+ctx.set("a", 10);
+ctx.set("b", 20);
+
+
+ctx.get(function(sync40) {
+    console.log(sync40);
+});
+
+
+/*
+var ctx = fad.create([
+    function x() {
+	return 1;
+    }
+]);
+
+
+ctx.get(function(x) {
+    console.log(x);
+});
+*/
+
+
+/*
 var ctx = fad.create({
             x: 1,
             y: 2
@@ -11,8 +81,9 @@ var ctx = fad.create({
                 cb(null, x + y);
             }
         ]);
+*/
 
-console.log(JSON.stringify(ctx.deps("age")));
+//console.log(JSON.stringify(ctx.deps("age")));
 
 /*
 var rules = [
