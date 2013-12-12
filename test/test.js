@@ -10,7 +10,7 @@ var rules = [
     function async10(cb) {
 	setTimeout(function () {
 	    cb(null, 10);
-	}, 200);
+	}, 1);
     },
     function addResult(a, b, async10, cb) {
 	cb(null, a + b + async10);
@@ -35,6 +35,12 @@ var rules = [
     },
     function sync40(number20) {
 	return number20 * 2;
+    },
+    function filtered(number20, filtered) {
+	return filtered + number20;
+    },
+    function filtered() {
+	return 40;
     }
 ];
 
@@ -49,9 +55,8 @@ var ctx = fad.create(rules);
 ctx.set("a", 10);
 ctx.set("b", 20);
 
-
-ctx.get(function(sync40) {
-    console.log(sync40);
+ctx.get(function(filtered) {
+    console.log(filtered);
 });
 
 

@@ -1,5 +1,7 @@
 "use strict";
 
+/* jshint -W004 */
+
 var fad = require("../lib/fad.js");
 var Context = require("../lib/context.js").Context;
 
@@ -24,7 +26,6 @@ describe("create()", function () {
 
 	it("should accept arrays of functions", function () {
 		var rules = [
-
 			function z(x, y, cb) {
 				cb(null, x + y);
 			}
@@ -116,7 +117,7 @@ describe("ctx.get", function () {
 		function async10(cb) {
 			setTimeout(function () {
 				cb(null, 10);
-			}, 200);
+			}, 1);
 		},
 		function addResult(a, b, async10, cb) {
 			cb(null, a + b + async10);
@@ -141,6 +142,12 @@ describe("ctx.get", function () {
 		},
 		function sync40(number20) {
 			return number20 * 2;
+		},
+		function filtered(number20, filtered) {
+			return filtered + number20;
+		},
+		function filtered() {
+			return 40;
 		}
 	];
 
@@ -264,7 +271,7 @@ describe("ctx.get", function () {
 				setTimeout(function () {
 					callCount++;
 					cb(null, 10);
-				}, 100);
+				}, 1);
 			}
 		]);
 		ctx3.get(function (waitForIt) {
@@ -366,6 +373,14 @@ describe("ctx.get", function () {
 	it("should accept non-async rules", function (done) {
 		ctx.get(function (sync40) {
 			expect(sync40).toEqual(40);
+			done();
+		});
+	});
+
+	it("should allow filter rules that depend on same named rules",
+		function (done) {
+		ctx.get(function (filtered) {
+			expect(filtered).toEqual(60);
 			done();
 		});
 	});
