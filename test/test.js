@@ -1,5 +1,68 @@
 var fad = require("..");
 
+
+var ctx = fad.create("context", [
+    function a() {
+	return 1;
+    },
+    function b(a) {
+	return a * 2;
+    },
+    function c(b) {
+	return b * 3;
+    }
+]);
+
+/*
+var ctx = fad.create("context", [
+    function a(cb) {
+       cb(null, 1);
+    },
+    function b(a, cb) {
+       cb(null, a * 2);
+    },
+    function c(b, cb) {
+       cb(null, b * 3);
+    }
+]);
+*/
+
+ctx.get(function (c) {
+    ctx.set("a", 2);
+    console.log("made it! c is " + c);
+    ctx.get(function (c) {
+        console.log(c);
+    });
+});
+
+
+/*
+var ctx = fad.create({
+            x: 1,
+            y: 2
+        }, [
+	    function hello(age) {
+		return age + 1;
+	    },
+            function age(x, y, cb) {
+                cb(null, x + y);
+            },
+            function age(x, y, age2, cb) {
+                cb(null, x + y + age2);
+            }
+        ]);
+
+
+ctx.get(function(hello, age) {
+    console.log(ctx._rdeps);
+    console.log(ctx.rdeps("x"));
+});
+*/
+
+//var deps = ctx.deps("age");
+
+
+/*
 var rules = [
     function number20(noone, cb) {
 	cb(null, 30);
@@ -43,21 +106,7 @@ var rules = [
 	return 40;
     }
 ];
-
-/* run for cover */
-rules[0](1, function () {});
-rules[6](1, function () {});
-rules[7](1, function () {});
-
-
-var ctx = fad.create(rules);
-
-ctx.set("a", 10);
-ctx.set("b", 20);
-
-ctx.get(function(filtered) {
-    console.log(filtered);
-});
+*/
 
 
 /*

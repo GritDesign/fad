@@ -26,6 +26,7 @@ describe("create()", function () {
 
 	it("should accept arrays of functions", function () {
 		var rules = [
+
 			function z(x, y, cb) {
 				cb(null, x + y);
 			}
@@ -63,7 +64,8 @@ describe("create()", function () {
 		rules[1](1, function () {});
 	});
 
-	it("should not allow rules that use cb and it is not the last argument",
+	it(
+		"should not allow rules that use cb and it is not the last argument",
 		function () {
 			var rules = [
 
@@ -108,11 +110,12 @@ describe("ctx", function () {
 describe("ctx.get", function () {
 
 	var rules = [
-		function number20(noone, cb) {
-			cb(null, 30);
-		},
+
 		function number20(cb) {
 			cb(null, 20);
+		},
+		function number20(noone, cb) {
+			cb(null, 30);
 		},
 		function async10(cb) {
 			setTimeout(function () {
@@ -135,24 +138,24 @@ describe("ctx.get", function () {
 			cb(null, "should have been error!");
 		},
 		function duplicate(cb) {
-			cb(null, "good");
+			cb(null, "bad");
 		},
 		function duplicate(cb) {
-			cb(null, "bad");
+			cb(null, "good");
 		},
 		function sync40(number20) {
 			return number20 * 2;
 		},
-		function filtered(number20, filtered) {
-			return filtered + number20;
-		},
 		function filtered() {
 			return 40;
+		},
+		function filtered(number20, filtered) {
+			return filtered + number20;
 		}
 	];
 
 	/* run for cover */
-	rules[0](1, function () {});
+	rules[1](1, function () {});
 	rules[6](1, function () {});
 	rules[7](1, function () {});
 
@@ -179,13 +182,14 @@ describe("ctx.get", function () {
 		});
 	});
 
-	it("should use the first of multiple rules where dependencies are met",
+	it(
+		"should use the first of multiple rules where dependencies are met",
 		function (done) {
-		ctx.get(function (err, duplicate) {
-			expect(duplicate).toEqual("good");
-			done();
+			ctx.get(function (err, duplicate) {
+				expect(duplicate).toEqual("good");
+				done();
+			});
 		});
-	});
 
 	it("should allow a single function argument", function (done) {
 		ctx.get(function (a, b) {
@@ -379,11 +383,11 @@ describe("ctx.get", function () {
 
 	it("should allow filter rules that depend on same named rules",
 		function (done) {
-		ctx.get(function (filtered) {
-			expect(filtered).toEqual(60);
-			done();
+			ctx.get(function (filtered) {
+				expect(filtered).toEqual(60);
+				done();
+			});
 		});
-	});
 });
 
 describe("ctx.keys", function () {
@@ -431,7 +435,7 @@ describe("ctx.eachContext", function () {
 				return true;
 			});
 
-			expect(all).toEqual(["D", "A", "B", "C"]);
+			expect(all).toEqual(["D", "C", "B", "A"]);
 		});
 
 	it(
@@ -444,7 +448,7 @@ describe("ctx.eachContext", function () {
 				return true;
 			});
 
-			expect(all).toEqual(["E", "D", "A", "B", "C"]);
+			expect(all).toEqual(["E", "D", "C", "B", "A"]);
 		});
 });
 
@@ -484,20 +488,20 @@ describe("ctx.deps", function () {
 	});
 
 	it("should ignore rules that don't have all deps", function () {
-		var ctx = fad.create({
+		var ctx4 = fad.create({
 			x: 1,
 			y: 2
 		}, [
 
-			function age(x, y, age2, cb) {
-				cb(null, x + y + age2);
-			},
 			function age(x, y, cb) {
 				cb(null, x + y);
+			},
+			function age(x, y, age2, cb) {
+				cb(null, x + y + age2);
 			}
 		]);
 
-		expect(ctx.deps("age")).toEqual({
+		expect(ctx4.deps("age")).toEqual({
 			"type": "rule",
 			"name": "age",
 			"ctxIndex": 0,
@@ -524,7 +528,7 @@ describe("ctx.deps", function () {
 			}]
 		});
 
-		var ctx2 = fad.create(ctx);
+		var ctx2 = fad.create(ctx4);
 		expect(ctx2.deps("age")).toEqual({
 			"type": "rule",
 			"name": "age",
@@ -573,5 +577,89 @@ describe("ctx.smallestEnclosingContext", function () {
 			smallestCtx = ctx.smallestEnclosingContext(deps.minCtx,
 				deps.maxCtx + 1);
 			expect(smallestCtx.name).toEqual("user");
+		});
+});
+
+describe("ctx.rdeps", function () {
+	it(
+		"should return all dependent rules for values that have been resolved",
+		function (done) {
+			var ctx = fad.create("context", [
+
+				function a() {
+					return 1;
+				},
+				function b(a) {
+					return a * 2;
+				},
+				function c(b) {
+					return b * 3;
+				}
+			]);
+
+			ctx.get(function (c) {
+				expect(c).toEqual(6);
+				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+
+				ctx.set("a", 2);
+				ctx.get(function (c) {
+					expect(c).toEqual(12);
+					done();
+				});
+			});
+		});
+
+	it(
+		"should re-resolve when dependent values change (sync)",
+		function (done) {
+			var ctx = fad.create("context", [
+
+				function a() {
+					return 1;
+				},
+				function b(a) {
+					return a * 2;
+				},
+				function c(b) {
+					return b * 3;
+				}
+			]);
+
+			ctx.get(function (c) {
+				expect(c).toEqual(6);
+				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+
+				ctx.set("a", 2);
+				ctx.get(function (c) {
+					expect(c).toEqual(12);
+					done();
+				});
+			});
+		});
+	it(
+		"should re-resolve when dependent values change (async)",
+		function (done) {
+			var ctx = fad.create("context", [
+
+				function a(cb) {
+					cb(null, 1);
+				},
+				function b(a, cb) {
+					cb(null, a * 2);
+				},
+				function c(b, cb) {
+					cb(null, b * 3);
+				}
+			]);
+			ctx.get(function (c) {
+				expect(c).toEqual(6);
+				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+
+				ctx.set("a", 2);
+				ctx.get(function (c) {
+					expect(c).toEqual(12);
+					done();
+				});
+			});
 		});
 });
