@@ -662,4 +662,92 @@ describe("ctx.rdeps", function () {
 				});
 			});
 		});
+
+
+	/*
+	it(
+		"should re-resolve when dependent values change from (sync)",
+		function (done) {
+			var parentCtx = fad.create("parent-context", [
+				function a() {
+					return 1;
+				}
+			]);
+			var ctx = fad.create("context", [
+				function b(a) {
+					return a * 2;
+				},
+				function c(b) {
+					return b * 3;
+				}
+			], parentCtx);
+
+			ctx.get(function (c) {
+				expect(c).toEqual(6);
+
+				parentCtx.set("a", 2);
+				parentCtx.get(function (c) {
+					expect(c).toEqual(12);
+					done();
+				});
+			});
+		});
+
+	it(
+		"should re-resolve when dependent values change from (async)",
+		function (done) {
+			var parentCtx = fad.create("parent-context", [
+				function a(cb) {
+					cb(null, 1);
+				}
+			]);
+			var ctx = fad.create("context", [
+				function b(a, cb) {
+					cb(null, a * 2);
+				},
+				function c(b, cb) {
+					cb(null, b * 3);
+				}
+			], parentCtx);
+
+			ctx.get(function (c) {
+				expect(c).toEqual(6);
+
+				parentCtx.set("a", 2);
+				parentCtx.get(function (c) {
+					expect(c).toEqual(12);
+					done();
+				});
+			});
+		});
+	*/
+});
+
+describe("ctx.on", function () {
+	it(
+		"should allow dirty events to be monitored",
+		function (done) {
+			var ctx = fad.create("context", [
+
+				function a(cb) {
+					cb(null, 1);
+				},
+				function b(a, cb) {
+					cb(null, a * 2);
+				},
+				function c(b, cb) {
+					cb(null, b * 3);
+				}
+			]);
+
+			ctx.on("dirty", function (dirty) {
+				expect(dirty).toEqual(["a", "c", "b"]);
+				done();
+			});
+			
+			ctx.get(function (c) {
+				ctx.set("a", c);
+			});
+		});
+
 });
