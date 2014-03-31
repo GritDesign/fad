@@ -408,7 +408,7 @@ describe("ctx.keys", function () {
 	});
 });
 
-describe("ctx.eachContext", function () {
+describe("ctx._eachContext", function () {
 	var ctxA = fad.create("A");
 	var ctxB = fad.create("B");
 	var ctxC = fad.create("C");
@@ -417,9 +417,9 @@ describe("ctx.eachContext", function () {
 
 	it("should iterate over contexts closest first order", function () {
 		var all = [];
-		ctxA.eachContext(function (ctx, i) {
+		ctxA._eachContext(function (ctx, i) {
 			all.push(ctx.name);
-			expect(ctxA.getContext(i).name).toEqual(ctx.name);
+			expect(ctxA._getContext(i).name).toEqual(ctx.name);
 			return true;
 		});
 
@@ -429,9 +429,9 @@ describe("ctx.eachContext", function () {
 	it("should iterate over contexts closest first order with parents",
 		function () {
 			var all = [];
-			ctxD.eachContext(function (ctx, i) {
+			ctxD._eachContext(function (ctx, i) {
 				all.push(ctx.name);
-				expect(ctxD.getContext(i).name).toEqual(ctx.name);
+				expect(ctxD._getContext(i).name).toEqual(ctx.name);
 				return true;
 			});
 
@@ -442,9 +442,9 @@ describe("ctx.eachContext", function () {
 		"should iterate over contexts closest first order with multiple",
 		function () {
 			var all = [];
-			ctxE.eachContext(function (ctx, i) {
+			ctxE._eachContext(function (ctx, i) {
 				all.push(ctx.name);
-				expect(ctxE.getContext(i).name).toEqual(ctx.name);
+				expect(ctxE._getContext(i).name).toEqual(ctx.name);
 				return true;
 			});
 
@@ -457,7 +457,7 @@ describe("ctx.deps", function () {
 		test: "value"
 	});
 	it("should report deps of simple context variables", function () {
-		expect(ctx.deps("test")).toEqual({
+		expect(ctx._getDeps("test")).toEqual({
 			type: "value",
 			name: "test",
 			ctxIndex: 0,
@@ -483,7 +483,7 @@ describe("ctx.deps", function () {
 		]);
 
 		expect(function () {
-			return ctx.deps("age");
+			return ctx._getDeps("age");
 		}).toThrow(new Error("Cycle detected: age->age2->age"));
 	});
 
@@ -501,7 +501,7 @@ describe("ctx.deps", function () {
 			}
 		]);
 
-		expect(ctx4.deps("age")).toEqual({
+		expect(ctx4._getDeps("age")).toEqual({
 			"type": "rule",
 			"name": "age",
 			"ctxIndex": 0,
@@ -529,7 +529,7 @@ describe("ctx.deps", function () {
 		});
 
 		var ctx2 = fad.create(ctx4);
-		expect(ctx2.deps("age")).toEqual({
+		expect(ctx2._getDeps("age")).toEqual({
 			"type": "rule",
 			"name": "age",
 			"ctxIndex": 1,
@@ -558,7 +558,7 @@ describe("ctx.deps", function () {
 	});
 });
 
-describe("ctx.smallestEnclosingContext", function () {
+describe("ctx._smallestEnclosingContext", function () {
 	it("should select a global context if there are not other deps",
 		function () {
 			var aCtx = fad.create("something", {
@@ -569,18 +569,18 @@ describe("ctx.smallestEnclosingContext", function () {
 			});
 			var ctx = fad.create("user", aCtx, gCtx);
 
-			var deps = ctx.deps("test");
-			var smallestCtx = ctx.smallestEnclosingContext(deps.minCtx,
+			var deps = ctx._getDeps("test");
+			var smallestCtx = ctx._smallestEnclosingContext(deps.minCtx,
 				deps.maxCtx);
 			expect(smallestCtx.name).toEqual("global");
 
-			smallestCtx = ctx.smallestEnclosingContext(deps.minCtx,
+			smallestCtx = ctx._smallestEnclosingContext(deps.minCtx,
 				deps.maxCtx + 1);
 			expect(smallestCtx.name).toEqual("user");
 		});
 });
 
-describe("ctx.rdeps", function () {
+describe("ctx._getRdeps", function () {
 	it(
 		"should return all dependent rules for values that have been resolved",
 		function (done) {
@@ -599,7 +599,7 @@ describe("ctx.rdeps", function () {
 
 			ctx.get(function (c) {
 				expect(c).toEqual(6);
-				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+				expect(ctx._getRdeps("a").sort()).toEqual(["b", "c"]);
 
 				ctx.set("a", 2);
 				ctx.get(function (c) {
@@ -627,7 +627,7 @@ describe("ctx.rdeps", function () {
 
 			ctx.get(function (c) {
 				expect(c).toEqual(6);
-				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+				expect(ctx._getRdeps("a").sort()).toEqual(["b", "c"]);
 
 				ctx.set("a", 2);
 				ctx.get(function (c) {
@@ -653,7 +653,7 @@ describe("ctx.rdeps", function () {
 			]);
 			ctx.get(function (c) {
 				expect(c).toEqual(6);
-				expect(ctx.rdeps("a").sort()).toEqual(["b", "c"]);
+				expect(ctx._getRdeps("a").sort()).toEqual(["b", "c"]);
 
 				ctx.set("a", 2);
 				ctx.get(function (c) {
